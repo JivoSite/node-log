@@ -1,0 +1,7 @@
+{
+   "name" : "log",
+   "version" : "???",
+   "description" : "nodejs module for logging\nStream types: file, udp, tty.\nLog formats: tab, tty, io, gelf, syslog.",
+   "main" : "log.js",
+   "engines" : { "node" : ">=6.9.2 <7.999" }
+}
