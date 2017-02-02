@@ -188,11 +188,12 @@ formats.io = function (opt)
 
 formats.gelf = function (opt)
 {
-   let host = line(opt.userinfo);
+   let host = line(opt.query || 'unknown');
 
    return function (id, level, args)
    {
-      let full = '';
+      let full  = '';
+      let short = '';
 
       for (let i = 0; i < args.length; ++i)
       {
@@ -205,13 +206,14 @@ formats.gelf = function (opt)
             try { full += JSON.stringify(args[i]); }
             catch (ex) { full += '[Circular]'; }
          }
+         if (0 === i) short = full;
          if (i < args.length - 1) full += '\t';
       }
 
       return JSON.stringify({
          version       : '1.1',
          host          : host,
-         short_message : id,
+         short_message : id + ':' + name[level] + ' ' + short,
          full_message  : full,
          timestamp     : now(true),
          level         : level
