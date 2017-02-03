@@ -854,9 +854,10 @@ const PEXT =
 const getStream = function (id, uri)
 {
    uri = decodeURI(uri);
-   if (uri in streams)
+   let sid = id + ':' + uri;
+   if (sid in streams)
    {
-      return streams[uri];
+      return streams[sid];
    }
    let r;
    if (null === (r = PURI.exec(uri)))
@@ -925,7 +926,7 @@ const getStream = function (id, uri)
       format = formats[extention](opt);
    }
 
-   return streams[uri] = means[opt.scheme](id, mask, opt, format);
+   return streams[sid] = means[opt.scheme](id, mask, opt, format);
 };
 
 const newBase = function (id)
