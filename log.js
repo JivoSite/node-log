@@ -28,7 +28,7 @@ const ascii = function (str)
 
 const line = function (str)
 {
-   return String(str).replace(/[\x00-\x19]/g, ' ');
+   return String(str).replace(/[\x00-\x08\x0A-\x1F]/g, ' ');
 };
 
 const escape = function (str)
@@ -87,7 +87,7 @@ formats.tab = function (opt)
       msg = msg.replace(/\bid\b/,   id);
       for (let i = 0; i < args.length; ++i)
       {
-         if (0 !== args.length || 0 !== msg.length)
+         if (0 !== args.length && 0 !== msg.length)
          {
             msg += '\t';
          }
