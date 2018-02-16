@@ -237,7 +237,7 @@ formats.syslog = function (opt)
       {
          case 'hostname' : hostname = ascii(pair[1]); break;
          case 'appname'  : appname  = ascii(pair[1]); break;
-         case 'facility' : facility = pair[1];       break;
+         case 'facility' : facility = pair[1];        break;
          default : throw new Error('log: invalid syslog field `'
             + pair[0] + '`, valid: hostname, appname, facility');
       }
@@ -443,7 +443,8 @@ const colorize = log.colorize = function (obj, link)
    }
    else if ('string' === typeof obj)
    {
-      str = JSON.stringify(obj).slice(1, -1);
+      str = JSON.stringify(obj).slice(1, -1)
+         .replace(/\\"/g, '"').replace(/'/g, '\\\'');
       if (void 0 !== link) str = '\'' + str + '\'';
       str = color.string + str;
    }
