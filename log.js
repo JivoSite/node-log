@@ -733,7 +733,40 @@ means.udp = function (id, mask, opt, format)
    if (!opt.port) throw new Error('upd port required');
    let _ip = opt.host;
    let _port = opt.port;
+   let _host = 'localhost';
+   let _family = (opt.query << 0) & 6;
    let _send = noop;
+   let _open = noop;
+   let _gai = function (close)
+   {
+      let req = new cares.GetAddrInfoReqWrap();
+      req.oncomplete = function (s, a)
+      {
+         //if (close) _send = noop;
+         if (s || !(a instanceof Array) || !a.length || _ip === a[0]) return;
+         switch (cares.isIP(a[0]))
+         {
+            case 4 :
+               _send = function (chunks)
+               {
+                  return _udp.send(new UDPSend(), chunks, chunks.length
+                     , _port, _ip, false);
+               };
+               break;
+            case 6 :
+               _send = function (chunks)
+               {
+                  return _udp.send6(new UDPSend(), chunks, chunks.length
+                     , _port, _ip, false);
+               };
+               break;
+            default : return;
+         }
+         _ip = a[0];
+      };
+      cares.getaddrinfo(req,_host, _family,
+         cares.AI_ADDRCONFIG & cares.AI_V4MAPPED, false);
+   };
    switch (cares.isIP(_ip))
    {
       case 4 :
@@ -750,7 +783,12 @@ means.udp = function (id, mask, opt, format)
                , _port, _ip, false);
          };
          break;
-      default : throw new Error('udp host must be ip4 or ip6');
+      default :
+         _host = _ip;
+         _ip = null;
+         _open = _gai;
+         _gai();
+         break;
    }
    let _udp = new UDP();
    if ('function' !== typeof format)
@@ -759,13 +797,13 @@ means.udp = function (id, mask, opt, format)
    }
 
    return Object.freeze({
-      open  : noop,
+      open  : _open,
       write : function (level, bit, args)
       {
          if (0 !== bit && 0 === (mask & bit)) return;
          let chunks = udpChunks(format(id, level, args));
          if (0 === chunks.length) return;
-         let err =_send(chunks);
+         let err = _send(chunks);
       }
    });
 };
