@@ -1,6 +1,6 @@
 {
    "name" : "log",
-   "version" : "1.2.0",
+   "version" : "1.4.0",
    "description" : "nodejs module for logging\nStream types: file, udp, tty.\nLog formats: tab, tty, io, gelf, syslog.",
    "main" : "log.js",
    "engines" : { "node" : ">=6.9.2 <8.999" }
