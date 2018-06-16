@@ -504,7 +504,7 @@ Object.defineProperty(log, 'chunked',
 {
    get : function () { return (1 < UDPCNT ? UDPCNT : 0); },
    set : function (value)
-   { let val = Math.ceil(value); VERB = (1 < val ? val : 1); },
+   { let val = Math.ceil(value); UDPCNT = (1 < val ? val : 1); },
    enumerable   : true,
    configurable : false
 });
@@ -678,9 +678,9 @@ means.file = function (id, mask, opt, format)
    fd = fs.open(opt.path, FOF_LOG, FOM_LOG);
 
    return Object.freeze({
-      open : function (close)
+      open : function (rotate)
       {
-         if (close)
+         if (rotate)
          {
             if (-1 !== fd) fs.close(fd);
             fd = -1;
@@ -701,7 +701,7 @@ means.file = function (id, mask, opt, format)
 const UDPLEN = 0x2000;
 const UDPHDR = Buffer.from([0x1E, 0x0F, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 const UDPCHK = UDPLEN - UDPHDR.length;
-let   UDPCNT = 0x01; // XXX greylog supported 0x80
+let   UDPCNT = 0x01; // graylog supported 0x80
 const udpChunks = function (str)
 {
    let buf = Buffer.from(str);
@@ -730,19 +730,27 @@ const udpChunks = function (str)
 
 means.udp = function (id, mask, opt, format)
 {
-   if (!opt.port) throw new Error('upd port required');
    let _ip = opt.host;
    let _port = opt.port;
-   let _host = 'localhost';
+   if (!_port) _port = 514; // default syslog port
+   let _host;
    let _family = (opt.userinfo << 0) & 6;
    let _send = noop;
    let _open = noop;
-   let _gai = function (close)
+   let _gai = function (rotate)
    {
+      if (rotate)
+      {
+         if (_ip)
+         {
+            //_send = noop;
+            //_ip = null;
+         }
+      }
+      else if (_ip) return;
       let req = new cares.GetAddrInfoReqWrap();
       req.oncomplete = function (s, a)
       {
-         //if (close) _send = noop;
          if (s || !(a instanceof Array) || !a.length || _ip === a[0]) return;
          switch (cares.isIP(a[0]))
          {
@@ -784,7 +792,7 @@ means.udp = function (id, mask, opt, format)
          };
          break;
       default :
-         _host = _ip;
+         _host = _ip || 'localhost';
          _ip = null;
          _open = _gai;
          _gai();
@@ -1063,7 +1071,7 @@ app.on('SIGUSR2', function ()
 {
    for (let i in streams)
    {
-      try { streams[i].open(true); }
+      try { streams[i].open(true); /* rotate */ }
       catch (ex) { log(new Error('log: ' + ex.message)); }
    }
 });
