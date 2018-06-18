@@ -743,8 +743,8 @@ means.udp = function (id, mask, opt, format)
       {
          if (_ip)
          {
-            //_send = noop;
-            //_ip = null;
+            //XXX _send = noop;
+            //XXX _ip = null;
          }
       }
       else if (_ip) return;
